@@ -6,7 +6,19 @@ async function http(method, path, body) {
     headers: { "Content-Type": "application/json" },
     body: body ? JSON.stringify(body) : undefined,
   });
-  if (!res.ok) throw new Error(await res.text());
+
+  if (!res.ok) {
+    // Proviamo a leggere JSON {error: "..."} altrimenti testo semplice
+    let msg = "";
+    try {
+      const data = await res.clone().json();
+      msg = data.error ?? JSON.stringify(data);
+    } catch {
+      msg = await res.text();
+    }
+    throw new Error(msg || res.statusText);
+  }
+  // 204? → null, altrimenti JSON
   return res.status === 204 ? null : res.json();
 }
 
