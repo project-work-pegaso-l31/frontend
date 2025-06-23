@@ -3,21 +3,34 @@ import { get, post } from "../lib/api";
 import Alert from "./Alert";
 
 export default function Transactions({ account, onAccountUpdate }) {
+  const [all, setAll] = useState([]);
   const [list, setList] = useState([]);
+  const [search, setSearch] = useState("");
   const [amount, setAmount] = useState("");
   const [desc, setDesc] = useState("");
   const [error, setError] = useState("");
 
-  /* ---- helper ---- */
-  const refreshTx = () =>
+  /* ---------------- load ---------------- */
+  const refresh = () =>
     get(`/transactions/${account.id}`)
-      .then((arr) => setList(arr.sort((a, b) => b.createdAt.localeCompare(a.createdAt))))
+      .then((arr) => {
+        const s = arr.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+        setAll(s);
+        setList(s);
+      })
       .catch((e) => setError(e.message));
 
   useEffect(() => {
-    refreshTx();
+    refresh();
   }, [account]);
 
+  /* filtraggio live */
+  useEffect(() => {
+    if (!search) return setList(all);
+    setList(all.filter((t) => (t.description || "").toLowerCase().includes(search.toLowerCase())));
+  }, [search, all]);
+
+  /* ---------------- move ---------------- */
   const move = async (type) => {
     if (!amount || Number(amount) <= 0) return setError("Importo non valido");
     try {
@@ -27,14 +40,14 @@ export default function Transactions({ account, onAccountUpdate }) {
       );
       setAmount("");
       setDesc("");
-      refreshTx();
+      setSearch("");
+      refresh();
       onAccountUpdate(await get(`/accounts/${account.id}`));
     } catch (e) {
       setError(e.message);
     }
   };
 
-  /* ---- format ---- */
   const fmtAmount = (x) => `${x < 0 ? "-" : "+"}€ ${Math.abs(Number(x)).toLocaleString("it-IT")}`;
 
   const fmtDate = (iso) =>
@@ -43,14 +56,22 @@ export default function Transactions({ account, onAccountUpdate }) {
       timeStyle: "short",
     });
 
-  /* ---- render ---- */
+  /* ---------------- UI ---------------- */
   return (
     <div className="p-4 border rounded-xl shadow space-y-4 bg-white col-span-2 text-gray-800">
       <h2 className="text-xl font-bold">Movimenti – {account.iban}</h2>
 
       <Alert message={error} />
 
-      {/* form accredito/debito */}
+      {/* filtro */}
+      <input
+        className="input w-full text-white placeholder-gray-400"
+        placeholder="Filtra descrizione…"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+
+      {/* form */}
       <div className="flex flex-wrap gap-2">
         <input
           className="input w-28 text-white placeholder-gray-400"
@@ -72,14 +93,14 @@ export default function Transactions({ account, onAccountUpdate }) {
         </button>
       </div>
 
-      {/* intestazione colonne */}
+      {/* header */}
       <div className="flex w-full font-semibold border-b pb-1 text-sm">
         <span className="flex-1">Descrizione</span>
         <span className="w-24 text-right">Importo</span>
         <span className="w-32 text-right">Data / ora</span>
       </div>
 
-      {/* righe movimenti */}
+      {/* righe */}
       <div className="space-y-1 text-sm">
         {list.map((t) => (
           <div key={t.id} className="flex w-full border-b last:border-0 py-1">

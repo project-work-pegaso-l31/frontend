@@ -1,26 +1,43 @@
-const BASE = import.meta.env.VITE_API || "http://localhost:8080/api";
+const api = "http://localhost:8080/api";
 
-async function http(method, path, body) {
-  const res = await fetch(BASE + path, {
+/* ------------------------------------------------------------------ */
+/*  Wrapper fetch → JSON + gestione errori parlanti                   */
+/* ------------------------------------------------------------------ */
+async function http(method, url, body) {
+  const res = await fetch(api + url, {
     method,
-    headers: { "Content-Type": "application/json" },
+    headers: body ? { "Content-Type": "application/json" } : undefined,
     body: body ? JSON.stringify(body) : undefined,
   });
 
-  if (!res.ok) {
-    // Proviamo a leggere JSON {error: "..."} altrimenti testo semplice
-    let msg = "";
-    try {
-      const data = await res.clone().json();
-      msg = data.error ?? JSON.stringify(data);
-    } catch {
-      msg = await res.text();
-    }
-    throw new Error(msg || res.statusText);
+  /* ---- OK ---- */
+  if (res.ok) return res.status === 204 ? null : res.json();
+
+  /* ---- ERRORE: estraggo messaggio leggibile ---- */
+  let msg = res.statusText; // fallback generale ("Bad Request", …)
+
+  try {
+    const data = await res.json();
+
+    /* possibili strutture di risposta                                          
+       { error:"Codice fiscale non valido" }                       (GlobalHandler)
+       { message:"Email non valida", status:400, ... }             (Spring MVC) 
+       { errors:[{defaultMessage:"Campo obbligatorio"}, ...] }     (BeanValidation)
+    */
+    if (data.error) msg = data.error;
+    else if (data.message && data.message !== "Bad Request") msg = data.message;
+    else if (Array.isArray(data.errors) && data.errors.length) msg = data.errors[0].defaultMessage;
+    else msg = JSON.stringify(data);
+  } catch (_) {
+    /* risposta non-JSON → plain text */
+    msg = await res.text();
   }
-  // 204? → null, altrimenti JSON
-  return res.status === 204 ? null : res.json();
+
+  throw new Error(msg || "Errore sconosciuto");
 }
 
-export const get = (p) => http("GET", p);
-export const post = (p, b) => http("POST", p, b);
+/* ------------------------------------------------------------------ */
+/*  API helpers                                                       */
+/* ------------------------------------------------------------------ */
+export const get = (url) => http("GET", url);
+export const post = (url, body) => http("POST", url, body);
