@@ -9,9 +9,13 @@ export default function Accounts({ customer, selected, onSelect }) {
   const load = () => {
     if (customer) get(`/accounts/by-customer/${customer.id}`).then(setList);
   };
-  useEffect(load, [customer]);
 
-  /* se selected cambia (nuovo saldo) → sync in lista */
+  /* nessuna Promise restituita */
+  useEffect(() => {
+    load();
+  }, [customer]);
+
+  /* sync saldo aggiornato */
   useEffect(() => {
     if (!selected) return;
     setList((prev) => prev.map((a) => (a.id === selected.id ? { ...selected } : a)));
@@ -30,8 +34,8 @@ export default function Accounts({ customer, selected, onSelect }) {
   if (!customer) return null;
 
   return (
-    <div className="p-4 border rounded-xl shadow space-y-3 bg-white">
-      <h2 className="text-xl font-bold mb-1">Conti di {customer.fullName}</h2>
+    <div className="p-4 border rounded-xl shadow space-y-3 bg-white text-gray-800 overflow-y-auto max-h-96">
+      <h2 className="text-xl font-bold text-black">Conti di {customer.fullName}</h2>
 
       <Alert message={error} />
 
@@ -45,7 +49,7 @@ export default function Accounts({ customer, selected, onSelect }) {
                    ? "bg-gray-900 text-green-400"
                    : "bg-gray-800 text-green-300"
                }`}>
-          <div className="text-sm font-mono truncate whitespace-nowrap max-w-full" title={a.iban}>
+          <div className="text-sm font-mono truncate" title={a.iban}>
             {a.iban}
           </div>
           <div className="text-xs">

@@ -3,84 +3,60 @@ import { get, post } from "../lib/api";
 import Alert from "./Alert";
 
 export default function Transactions({ account, onAccountUpdate }) {
-  const [all, setAll] = useState([]);
   const [list, setList] = useState([]);
-  const [search, setSearch] = useState("");
   const [amount, setAmount] = useState("");
   const [desc, setDesc] = useState("");
   const [error, setError] = useState("");
 
-  /* ---------------- load ---------------- */
-  const refresh = () =>
+  const refreshTx = () =>
     get(`/transactions/${account.id}`)
-      .then((arr) => {
-        const s = arr.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-        setAll(s);
-        setList(s);
-      })
+      .then((arr) => setList(arr.sort((a, b) => b.createdAt.localeCompare(a.createdAt))))
       .catch((e) => setError(e.message));
 
   useEffect(() => {
-    refresh();
+    refreshTx();
   }, [account]);
 
-  /* filtraggio live */
-  useEffect(() => {
-    if (!search) return setList(all);
-    setList(all.filter((t) => (t.description || "").toLowerCase().includes(search.toLowerCase())));
-  }, [search, all]);
-
-  /* ---------------- move ---------------- */
   const move = async (type) => {
     if (!amount || Number(amount) <= 0) return setError("Importo non valido");
     try {
       await post(
-        `/transactions/${account.id}/${type}` +
-          `?amount=${amount}&description=${encodeURIComponent(desc)}`
+        `/transactions/${account.id}/${type}?amount=${amount}&description=${encodeURIComponent(
+          desc
+        )}`
       );
       setAmount("");
       setDesc("");
-      setSearch("");
-      refresh();
+      refreshTx();
       onAccountUpdate(await get(`/accounts/${account.id}`));
     } catch (e) {
       setError(e.message);
     }
   };
 
-  const fmtAmount = (x) => `${x < 0 ? "-" : "+"}€ ${Math.abs(Number(x)).toLocaleString("it-IT")}`;
-
+  const fmtAmt = (x) => `${x < 0 ? "-" : "+"}€ ${Math.abs(Number(x)).toLocaleString("it-IT")}`;
   const fmtDate = (iso) =>
     new Date(iso.replace(/^(.*\.\d{3})\d+$/, "$1")).toLocaleString("it-IT", {
       dateStyle: "short",
       timeStyle: "short",
     });
 
-  /* ---------------- UI ---------------- */
   return (
     <div className="p-4 border rounded-xl shadow space-y-4 bg-white col-span-2 text-gray-800">
       <h2 className="text-xl font-bold">Movimenti – {account.iban}</h2>
 
       <Alert message={error} />
 
-      {/* filtro */}
-      <input
-        className="input w-full text-white placeholder-gray-400"
-        placeholder="Filtra descrizione…"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
-
       {/* form */}
       <div className="flex flex-wrap gap-2">
         <input
-          className="input w-28 text-white placeholder-gray-400"
+          className="input w-28 text-white"
           placeholder="€ importo"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
         />
         <input
-          className="input flex-1 min-w-40 text-white placeholder-gray-400"
+          className="input flex-1 min-w-40 text-white"
           placeholder="Descrizione"
           value={desc}
           onChange={(e) => setDesc(e.target.value)}
@@ -100,8 +76,8 @@ export default function Transactions({ account, onAccountUpdate }) {
         <span className="w-32 text-right">Data / ora</span>
       </div>
 
-      {/* righe */}
-      <div className="space-y-1 text-sm">
+      {/* rows con scrollbar */}
+      <div className="space-y-1 text-sm max-h-[40vh] overflow-y-auto">
         {list.map((t) => (
           <div key={t.id} className="flex w-full border-b last:border-0 py-1">
             <span className="flex-1 truncate">{t.description || "–"}</span>
@@ -109,7 +85,7 @@ export default function Transactions({ account, onAccountUpdate }) {
               className={`w-24 text-right font-medium ${
                 Number(t.amount) < 0 ? "text-red-600" : "text-green-700"
               }`}>
-              {fmtAmount(t.amount)}
+              {fmtAmt(t.amount)}
             </span>
             <span className="w-32 text-right whitespace-nowrap">{fmtDate(t.createdAt)}</span>
           </div>

@@ -1,11 +1,11 @@
-export default function CustomerDetails({ customer, onShowAccounts }) {
+export default function CustomerDetails({ customer }) {
   if (!customer) return null;
 
   return (
-    <div className="p-4 border rounded-xl shadow space-y-4 bg-white">
-      <h2 className="text-xl font-bold">Anagrafica cliente</h2>
+    <div className="p-4 border rounded-xl shadow space-y-2 bg-white text-gray-800">
+      <h2 className="text-xl font-bold text-black">Anagrafica</h2>
 
-      <div className="space-y-1 text-sm text-gray-800">
+      <div className="text-sm space-y-1">
         <div>
           <span className="font-semibold">Nome:</span> {customer.fullName}
         </div>
@@ -13,13 +13,9 @@ export default function CustomerDetails({ customer, onShowAccounts }) {
           <span className="font-semibold">Email:</span> {customer.email}
         </div>
         <div>
-          <span className="font-semibold">CF:</span> {customer.fiscalCode}
+          <span className="font-semibold">Codice fiscale:</span> {customer.fiscalCode}
         </div>
       </div>
-
-      <button className="btn w-full" onClick={onShowAccounts}>
-        Conti
-      </button>
     </div>
   );
 }

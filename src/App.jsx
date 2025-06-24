@@ -6,48 +6,37 @@ import Transactions from "./components/Transactions";
 
 export default function App() {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [showAccounts, setShowAccounts] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState(null);
 
   return (
-    <div className="min-h-screen p-6 bg-gray-100 space-y-6">
-      {/* griglia principale: 3 colonne fisse */}
-      <div className="grid grid-cols-3 gap-6">
-        {/* --- colonna 1: elenco clienti --- */}
+    <div className="min-h-screen bg-gray-100 p-6 text-white">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {/* col 1: clienti */}
         <Customers
           selected={selectedCustomer}
           onSelect={(c) => {
             setSelectedCustomer(c);
-            setShowAccounts(false);
-            setSelectedAccount(null);
+            setSelectedAccount(null); // reset IBAN
           }}
         />
 
-        {/* --- colonna 2: anagrafica --- */}
-        {selectedCustomer && (
-          <CustomerDetails
-            customer={selectedCustomer}
-            onShowAccounts={() => setShowAccounts(true)}
-          />
-        )}
+        {/* col 2: anagrafica */}
+        {selectedCustomer && <CustomerDetails customer={selectedCustomer} />}
 
-        {/* --- colonna 3: conti (visibile solo quando richiesto) --- */}
-        {showAccounts && selectedCustomer && (
+        {/* col 3: conti */}
+        {selectedCustomer && (
           <Accounts
             customer={selectedCustomer}
             selected={selectedAccount}
-            onSelect={(a) => setSelectedAccount(a)}
+            onSelect={setSelectedAccount}
           />
         )}
-      </div>
 
-      {/* se è selezionato un IBAN, mostrane i movimenti sotto la griglia */}
-      {selectedAccount && (
-        <Transactions
-          account={selectedAccount}
-          onAccountUpdate={(upd) => setSelectedAccount(upd)}
-        />
-      )}
+        {/* col 4: movimenti */}
+        {selectedAccount && (
+          <Transactions account={selectedAccount} onAccountUpdate={setSelectedAccount} />
+        )}
+      </div>
     </div>
   );
 }
