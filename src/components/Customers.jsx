@@ -46,7 +46,8 @@ export default function Customers({ selected, onSelect }) {
     const q = search.trim().toUpperCase();
     if (!CF_REGEX.test(q)) return setError("Inserire un codice fiscale completo o valido");
     try {
-      const c = await get(`/customers/by-fiscalCode?cf=${encodeURIComponent(q)}`);
+      /* ↙️ path-param, NON query-param */
+      const c = await get(`/customers/by-fiscalCode/${q}`);
       onSelect(c);
       setError("");
     } catch {
@@ -120,7 +121,8 @@ export default function Customers({ selected, onSelect }) {
             <button
               title="Dettagli"
               onClick={() => onSelect(c)}
-              className="w-6 h-6 flex items-center justify-center rounded-full bg-blue-600 text-white text-xs font-bold hover:bg-blue-700">
+              className="w-6 h-6 flex items-center justify-center rounded-full
+                         bg-blue-600 text-white text-xs font-bold hover:bg-blue-700">
               i
             </button>
           </div>
