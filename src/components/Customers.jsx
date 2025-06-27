@@ -46,7 +46,6 @@ export default function Customers({ selected, onSelect }) {
     const q = search.trim().toUpperCase();
     if (!CF_REGEX.test(q)) return setError("Inserire un codice fiscale completo o valido");
     try {
-      /* ↙️ path-param, NON query-param */
       const c = await get(`/customers/by-fiscalCode/${q}`);
       onSelect(c);
       setError("");
@@ -55,7 +54,6 @@ export default function Customers({ selected, onSelect }) {
     }
   };
 
-  /* ------- render ------- */
   return (
     <div className="p-4 border rounded-xl shadow space-y-4 bg-white text-gray-800">
       <h2 className="text-xl font-bold">Lista clienti</h2>
@@ -67,19 +65,19 @@ export default function Customers({ selected, onSelect }) {
         <h3 className="font-semibold">Inserimento nuovo cliente</h3>
 
         <input
-          className="input w-full text-white placeholder-gray-300"
+          className="input w-full bg-gray-700 text-white placeholder-gray-400"
           placeholder="Nome completo"
           value={full}
           onChange={(e) => setFull(e.target.value)}
         />
         <input
-          className="input w-full text-white placeholder-gray-300"
+          className="input w-full bg-gray-700 text-white placeholder-gray-400"
           placeholder="Email"
           value={mail}
           onChange={(e) => setMail(e.target.value)}
         />
         <input
-          className="input w-full text-white placeholder-gray-300"
+          className="input w-full bg-gray-700 text-white placeholder-gray-400"
           placeholder="Codice fiscale"
           value={cf}
           onChange={(e) => setCf(e.target.value.toUpperCase())}
@@ -96,7 +94,7 @@ export default function Customers({ selected, onSelect }) {
 
         <div className="flex gap-2">
           <input
-            className="input flex-1 text-white placeholder-gray-300"
+            className="input flex-1 bg-gray-700 text-white placeholder-gray-400"
             placeholder="Cerca CF…"
             value={search}
             onChange={(e) => setSearch(e.target.value.toUpperCase())}

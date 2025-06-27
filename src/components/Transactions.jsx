@@ -21,9 +21,7 @@ export default function Transactions({ account, onAccountUpdate }) {
     if (!amount || Number(amount) <= 0) return setError("Importo non valido");
     try {
       await post(
-        `/transactions/${account.id}/${type}?amount=${amount}&description=${encodeURIComponent(
-          desc
-        )}`
+        `/transactions/${account.id}/${type}?amount=${amount}&description=${encodeURIComponent(desc)}`
       );
       setAmount("");
       setDesc("");
@@ -50,13 +48,13 @@ export default function Transactions({ account, onAccountUpdate }) {
       {/* form */}
       <div className="flex flex-wrap gap-2">
         <input
-          className="input w-28 text-white"
+          className="input w-28 bg-gray-700 text-white placeholder-gray-400"
           placeholder="€ importo"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
         />
         <input
-          className="input flex-1 min-w-40 text-white"
+          className="input flex-1 min-w-40 bg-gray-700 text-white placeholder-gray-400"
           placeholder="Descrizione"
           value={desc}
           onChange={(e) => setDesc(e.target.value)}
